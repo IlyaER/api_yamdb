@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from users.models import User
 
@@ -45,3 +46,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'first_name', 'last_name', 'username',
             'bio', 'email', 'role',)
+        extra_kwargs = {
+            'username': {
+                'required': True
+            },
+            'email': {
+                'required': True,
+                'validators': [
+                    UniqueValidator(
+                        queryset=User.objects.all()
+                    )
+                ]
+            }
+        }
