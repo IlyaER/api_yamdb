@@ -60,9 +60,21 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'review', 'author')
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
+        model = Categories
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'slug')
+        model = Genres
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('name', 'year', 'category', 'genre')
         model = Titles
 
 
