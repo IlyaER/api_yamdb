@@ -2,10 +2,10 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt import tokens
@@ -89,18 +89,23 @@ class TitleViewSet(ModelViewSet):
     queryset = Titles.objects.all()
     serializer_class = TitleSerializer
     permission_classes = (IsAuthorAdminOrModeratorOrReadOnly,)
+    pagination_class = PageNumberPagination
 
 
 class GenreViewSet(ModelViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
 
 
 class CategoryViewSet(ModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
 
 
 class ReviewViewSet(ModelViewSet):
