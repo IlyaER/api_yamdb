@@ -1,8 +1,21 @@
-# api_yamdb
-api_yamdb
+# Проект YaMDb
 
 
-### Запуск проекта в dev-режиме
+## Описание
+
+
+### API
+Основной функционал.
+
+## Основные технологии
+
++ Django
++ djangorestframework
++ djangorestframework-simplejwt
++ PyJWT
+
+## Запуск проекта
+
 - Установите и активируйте виртуальное окружение
 ```
 python -m venv venv
@@ -33,4 +46,18 @@ python api_yamdb\manage.py createsuperuser
 python api_yamdb\manage.py runserver
 ```
 В дальнейшем для запуска нужно выполнять только последнюю команду.
+
+##
+[Документация проекта -> {{server}}/redoc/](http://localhost:8000/redoc/)
+
+## Примеры
+
+----
+
+Проект: [Яндекс.Практикум](https://practicum.yandex.ru)  
+Команда: 
++ [gseldon](https://github.com/gseldon)
+...
+
+
 
