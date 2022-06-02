@@ -8,6 +8,8 @@ app_name = 'api'
 router = routers.DefaultRouter()
 router.register('users', UserViewSet)
 router.register('titles', TitleViewSet)
+router.register('genres', TitleViewSet)
+router.register('categories', TitleViewSet)
 router.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,

@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt import tokens
 from rest_framework.viewsets import ModelViewSet
 
-from .permissions import IsAdmin
+from .permissions import IsAdmin, IsAuthorAdminOrModeratorOrReadOnly
 from .serializers import (
-    UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer
+    UserSerializer, Confirmation, Registration, CommentSerializer,
+    TitleSerializer, ReviewSerializer
 )
 from reviews.models import User, Titles, Genres, Reviews, Comments
 
@@ -90,20 +91,32 @@ class TitleViewSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    pass
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthorAdminOrModeratorOrReadOnly, ]
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        return Reviews.objects.filter(title_id=title_id).all()
+
+    # def perform_create(self, serializer):
+    #     review = get_object_or_404(Reviews, id=self.kwargs.get('title_id'))
+    #     serializer.save(
+    #         author=self.request.user,
+    #         review=review,
+    #     )
 
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = [IsAuthorOrReadOnly, ]
+    permission_classes = [IsAuthorAdminOrModeratorOrReadOnly, ]
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
         return Comments.objects.filter(review_id=review_id)
 
-    def perform_create(self, serializer):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
-        serializer.save(
-            author=self.request.user,
-            review=review,
-        )
+    # def perform_create(self, serializer):
+    #     review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+    #     serializer.save(
+    #         author=self.request.user,
+    #         review=review,
+    #     )
