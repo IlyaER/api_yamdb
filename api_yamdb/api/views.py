@@ -9,9 +9,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt import tokens
 
+from api.permissions import IsAdmin, IsAuthorOrAdmin
+from api.serializers import Confirmation, Registration, UserSerializer
 from users.models import User
-from users.permissions import IsAdmin, IsAuthorOrAdmin
-from users.serializers import Confirmation, Registration, UserSerializer
 
 
 class UserViewSet(ModelViewSet):
