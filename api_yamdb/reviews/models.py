@@ -1,6 +1,15 @@
+import datetime
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+
+
+def current_year():
+    return datetime.date.today().year
+
+
+def max_value_current_year(value):
+    return MaxValueValidator(current_year())(value)   
 
 
 class User(AbstractUser):
@@ -34,9 +43,10 @@ class Genres(models.Model):
     slug = models.SlugField(unique=True)
 
 
-class Titles(models.Model):
+class Titles(models.Model): 
     name = models.CharField(max_length=64)
-    year = models.DateField()
+    year = models.IntegerField(
+        validators=[MinValueValidator(1000), max_value_current_year])
     category = models.ForeignKey(Categories, on_delete=models.SET_NULL, related_name='title', null=True)
     genre = models.ManyToManyField(Genres, through='GenreTitle')
 

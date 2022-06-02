@@ -14,6 +14,15 @@
 + djangorestframework-simplejwt
 + PyJWT
 
+## Импорт данных
+
+Набор данных находится в папке ```api_yamdb/static/data``` 
+Для запуска импорта выполните
+
+```
+python3 manage.py load_data
+```
+
 ## Запуск проекта
 
 ##
