@@ -1,33 +1,30 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-
-from rest_framework import status, filters
+from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.response import Response
-from rest_framework_simplejwt import tokens
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt import tokens
 
-from .permissions import IsAdmin, IsAuthorAdminOrModeratorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (
-    UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer
-)
-from reviews.models import User, Titles, Genres, Reviews, Comments, Categories
+from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly
+from .serializers import Confirmation, Registration, UserSerializer, TitleSerializer, GenreSerializer, CategorySerializer, CommentSerializer
+from reviews.models import User, Titles, Genres, Categories, Reviews, Comments, Categories
 
 
 class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
-    lookup_field = 'username'
     permission_classes = [IsAdmin, IsAuthenticated]
     filter_backends = [SearchFilter]
-    search_fields = ['user__username', ]
+    lookup_field = 'username'
+    search_fields = ['username']
 
     @action(methods=['patch', 'get'],
-            permission_classes=[IsAuthenticated],
+            permission_classes=[IsAuthenticated, IsAuthorOrAdmin],
             detail=False,
             url_path='me',
             url_name='me')
@@ -35,6 +32,9 @@ class UserViewSet(ModelViewSet):
         user = self.request.user
         serializer = self.get_serializer(user)
         if self.request.method == 'PATCH':
+            role = request.data.get('role') or None
+            if role in ['admin', 'moderator'] and not user.is_staff:
+                return Response(serializer.data)
             serializer = self.get_serializer(
                 user,
                 data=request.data,
@@ -88,7 +88,7 @@ def get_token(request):
 class TitleViewSet(ModelViewSet):
     queryset = Titles.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = (IsAuthorAdminOrModeratorOrReadOnly,)
+    permission_classes = (IsAuthorOrAdmin,)
     pagination_class = PageNumberPagination
 
 
@@ -97,7 +97,7 @@ class GenreViewSet(ModelViewSet):
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (SearchFilter, )
     search_fields = ('name',)
 
 

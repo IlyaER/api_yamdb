@@ -3,6 +3,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from reviews.models import User, Titles, Genres, Categories, Reviews, Comments
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+
+from reviews.models import User
 
 
 class Registration(serializers.Serializer):
@@ -47,6 +51,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'first_name', 'last_name', 'username',
             'bio', 'email', 'role',)
+        extra_kwargs = {
+            'username': {
+                'required': True
+            },
+            'email': {
+                'required': True,
+                'validators': [
+                    UniqueValidator(
+                        queryset=User.objects.all()
+                    )
+                ]
+            }
+        }
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -87,4 +104,3 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comments
         fields = '__all__'
         read_only_fields = ('id', 'title', 'author')
-
