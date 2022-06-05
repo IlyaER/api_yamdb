@@ -37,18 +37,31 @@ class Categories(models.Model):
     name = models.CharField(max_length=64)
     slug = models.SlugField(unique=True)
 
+    class Meta:
+        ordering = ('pk',)
+
 
 class Genres(models.Model):
     name = models.CharField(max_length=32)
     slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('pk',)
 
 
 class Titles(models.Model): 
     name = models.CharField(max_length=64)
     year = models.IntegerField(
         validators=[MinValueValidator(1000), max_value_current_year])
-    category = models.ForeignKey(Categories, on_delete=models.SET_NULL, related_name='title', null=True)
+    category = models.ForeignKey(
+        Categories,
+        on_delete=models.SET_NULL,
+        related_name='title', null=True
+    )
     genre = models.ManyToManyField(Genres, through='GenreTitle')
+
+    class Meta:
+        ordering = ('pk',)
 
 
 class GenreTitle(models.Model):
@@ -74,9 +87,10 @@ class Reviews(models.Model):
     pub_date = models.DateTimeField(
         'Дата добавления отзыва', auto_now_add=True, db_index=True
     )
-    
+
     class Meta:
         unique_together = ['title', 'author']
+        ordering = ('pk',)
 
 
 class Comments(models.Model):
@@ -90,3 +104,6 @@ class Comments(models.Model):
     pub_date = models.DateTimeField(
         'Дата добавления комментария', auto_now_add=True, db_index=True
     )
+
+    class Meta:
+        ordering = ('pk',)

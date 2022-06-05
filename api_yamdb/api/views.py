@@ -112,7 +112,7 @@ class GenreViewSet(ModelViewSet):
 
 
 class CategoryViewSet(ModelViewSet):
-    queryset = Categories.objects.all()
+    queryset = Categories.objects.all().order_by('id')
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
@@ -125,7 +125,7 @@ class ReviewViewSet(ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        return Reviews.objects.filter(title_id=title_id)
+        return Reviews.objects.filter(title_id=title_id).all().order_by('id')
 
     def perform_create(self, serializer):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
@@ -142,7 +142,7 @@ class CommentViewSet(ModelViewSet):
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
-        return Comments.objects.filter(review_id=review_id)
+        return Comments.objects.filter(review_id=review_id).all().order_by('id')
 
     def perform_create(self, serializer):
         review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
