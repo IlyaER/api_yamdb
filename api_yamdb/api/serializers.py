@@ -5,7 +5,7 @@ from rest_framework.relations import SlugRelatedField
 
 from reviews.models import User, Titles, Genres, Categories, Reviews, Comments
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from reviews.models import User
 
@@ -67,15 +67,28 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
 
-class ReviewSerializer(serializers.ModelSerializer):   
-    # title = serializers.SlugRelatedField(
-    #     slug_field='title', read_only=True
-    # )
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
+    # def validate(self, attrs):
+    #     print(attrs.get('title_id'))
+    #     title = get_object_or_404(Reviews, title=attrs.get('title_id'))
+    #     # if user == self.context['request'].user:
+    #     #     raise serializers.ValidationError('На себя подписаться нельзя')
+    #     title_author = Reviews.objects.filter(
+    #         author=self.context['request'].user, title=user
+    #     ).exists()
+    #     if title_author is True:
+    #         raise serializers.ValidationError(
+    #             'Вы уже подписаны на пользователя'
+    #         )
+    #     return attrs
     
     class Meta:
         model = Reviews
-        fields = '__all__'
-        # read_only_fields = ('id', 'title', 'author')
+        fields = 'id', 'text', 'author', 'score', 'pub_date'
+        read_only_fields = ('id', 'author', 'title')
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -108,11 +121,11 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    # author = serializers.SlugRelatedField(
-    #     slug_field='username', read_only=True
-    # )
+    author = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
 
     class Meta:
         model = Comments
-        fields = '__all__'
-        # read_only_fields = ('id', 'review', 'author')
+        fields = 'id', 'text', 'author', 'pub_date'
+        read_only_fields = ('id', 'author')

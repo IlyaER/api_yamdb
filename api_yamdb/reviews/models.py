@@ -74,6 +74,9 @@ class Reviews(models.Model):
     pub_date = models.DateTimeField(
         'Дата добавления отзыва', auto_now_add=True, db_index=True
     )
+    
+    class Meta:
+        unique_together = ['title', 'author']
 
 
 class Comments(models.Model):

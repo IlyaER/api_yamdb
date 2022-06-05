@@ -4,13 +4,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt import tokens
 
-from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly
+from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAuthorAdminOrModeratorOrReadOnly
 from .serializers import (
     UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer
@@ -120,23 +120,23 @@ class CategoryViewSet(ModelViewSet):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdminOrReadOnly, ]
+    permission_classes = [IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
         return Reviews.objects.filter(title_id=title_id)
 
-    # def perform_create(self, serializer):
-    #     review = get_object_or_404(Reviews, id=self.kwargs.get('title_id'))
-    #     serializer.save(
-    #         author=self.request.user,
-    #         review=review,
-    #     )
-
+    def perform_create(self, serializer):
+        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        serializer.save(
+            author=self.request.user,
+            title=title,
+        )
+    
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorOrAdmin, IsAdminOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
