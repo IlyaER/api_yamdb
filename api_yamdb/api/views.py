@@ -88,8 +88,15 @@ def get_token(request):
 class TitleViewSet(ModelViewSet):
     queryset = Titles.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = (IsAuthorOrAdmin,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
+
+    #def perform_create(self, serializer):
+    #    category = get_object_or_404(Categories, name=self.request.data.get('category'))
+    #    return serializer.save(category=category)
+
+    #def perform_create(self, serializer):
+    #    serializer.save(category=get_object_or_404(Categories, name=self.request.data.get('category')))
 
 
 class GenreViewSet(ModelViewSet):
