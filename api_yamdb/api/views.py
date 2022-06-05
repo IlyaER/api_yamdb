@@ -13,7 +13,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from .permissions import IsAdmin, IsAuthorAdminOrModeratorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (
-    UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer
+    UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
+    ReviewSerializer
 )
 from reviews.models import User, Titles, Genres, Reviews, Comments, Categories
 
@@ -114,7 +115,7 @@ class ReviewViewSet(ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        return Reviews.objects.filter(title_id=title_id).all()
+        return Reviews.objects.filter(title_id=title_id)
 
     # def perform_create(self, serializer):
     #     review = get_object_or_404(Reviews, id=self.kwargs.get('title_id'))
