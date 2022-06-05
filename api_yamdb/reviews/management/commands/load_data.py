@@ -3,7 +3,7 @@ import os
 from django.core.management import BaseCommand
 
 from reviews.models import (
-    User, Titles, Categories, GenreTitle, Reviews, Comments
+    User, Titles, Categories, Genres, GenreTitle, Reviews, Comments
 )
 
 
@@ -16,6 +16,7 @@ DATA_DIR = 'static/data'
 DATA_PATCH = {
     'users': os.path.join(DATA_DIR, 'users.csv'),
     'category': os.path.join(DATA_DIR, 'category.csv'),
+    'genre': os.path.join(DATA_DIR, 'genre.csv'),
     'titles': os.path.join(DATA_DIR, 'titles.csv'),
     'genre_title': os.path.join(DATA_DIR, 'genre_title.csv'),
     'review': os.path.join(DATA_DIR, 'review.csv'),
@@ -62,6 +63,16 @@ class Command(BaseCommand):
             category.save()
 
         print('Loading data category')
+        
+        for row in DictReader(open(DATA_PATCH['genre'])):
+            genre = Genres(
+                id=row['id'],
+                name=row['name'],
+                slug=row['slug'],
+            )
+            genre.save()
+
+        print('Loading data genre')
 
         for row in DictReader(open(DATA_PATCH['titles'])):
             title = Titles(
@@ -74,15 +85,15 @@ class Command(BaseCommand):
 
         print('Loading data title')
 
-        # for row in DictReader(open(DATA_PATCH['genre_title'])):
-        #     genre_title=GenreTitle(
-        #         id=row['id'],
-        #         title_id=row['title_id'],
-        #         genre_id=row['genre_id'],
-        #     )
-        #     genre_title.save()
+        for row in DictReader(open(DATA_PATCH['genre_title'])):
+            genre_title=GenreTitle(
+                id=row['id'],
+                title_id=row['title_id'],
+                genre_id=row['genre_id'],
+            )
+            genre_title.save()
 
-        # print('Loading data genre_title')
+        print('Loading data genre_title')
 
         for row in DictReader(open(DATA_PATCH['review'])):
             review = Reviews(

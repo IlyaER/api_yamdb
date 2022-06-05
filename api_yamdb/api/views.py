@@ -11,8 +11,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt import tokens
 
 from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly
-from .serializers import Confirmation, Registration, UserSerializer, TitleSerializer, GenreSerializer, CategorySerializer, CommentSerializer
-from reviews.models import User, Titles, Genres, Categories, Reviews, Comments, Categories
+from .serializers import (
+    UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
+    ReviewSerializer
+)
+from reviews.models import User, Titles, Genres, Reviews, Comments, Categories
 
 
 class UserViewSet(ModelViewSet):
@@ -116,20 +119,32 @@ class CategoryViewSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    pass
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminOrReadOnly, ]
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        return Reviews.objects.filter(title_id=title_id)
+
+    # def perform_create(self, serializer):
+    #     review = get_object_or_404(Reviews, id=self.kwargs.get('title_id'))
+    #     serializer.save(
+    #         author=self.request.user,
+    #         review=review,
+    #     )
 
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = [IsAuthorOrReadOnly, ]
+    permission_classes = [IsAuthorOrAdmin, IsAdminOrReadOnly]
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
         return Comments.objects.filter(review_id=review_id)
 
-    def perform_create(self, serializer):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
-        serializer.save(
-            author=self.request.user,
-            review=review,
-        )
+    # def perform_create(self, serializer):
+    #     review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+    #     serializer.save(
+    #         author=self.request.user,
+    #         review=review,
+    #     )
