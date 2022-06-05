@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
@@ -114,10 +115,18 @@ class TitleSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='slug'
     )
+    rating = serializers.SerializerMethodField()
+    
     class Meta:
-        fields = ('id', 'name', 'year', 'category', 'genre')
+        fields = ('id', 'name', 'year', 'category', 'genre', 'rating')
         model = Titles
         read_only_fields = ('id', 'category', 'genre')
+    
+    def get_rating(self, obj):
+        rating = Reviews.objects.filter(title=obj.id).aggregate(Avg('score'))['score__avg']
+        if not rating:
+            return None
+        return rating
 
 
 class CommentSerializer(serializers.ModelSerializer):
