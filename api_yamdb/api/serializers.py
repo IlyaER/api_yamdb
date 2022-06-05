@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -72,20 +70,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
-    # def validate(self, attrs):
-    #     print(attrs.get('title_id'))
-    #     title = get_object_or_404(Reviews, title=attrs.get('title_id'))
-    #     # if user == self.context['request'].user:
-    #     #     raise serializers.ValidationError('На себя подписаться нельзя')
-    #     title_author = Reviews.objects.filter(
-    #         author=self.context['request'].user, title=user
-    #     ).exists()
-    #     if title_author is True:
-    #         raise serializers.ValidationError(
-    #             'Вы уже подписаны на пользователя'
-    #         )
-    #     return attrs
-    
+
     class Meta:
         model = Reviews
         fields = 'id', 'text', 'author', 'score', 'pub_date'
@@ -116,12 +101,12 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug'
     )
     rating = serializers.SerializerMethodField()
-    
+
     class Meta:
         fields = ('id', 'name', 'year', 'category', 'genre', 'rating')
         model = Titles
         read_only_fields = ('id', 'category', 'genre')
-    
+
     def get_rating(self, obj):
         rating = Reviews.objects.filter(title=obj.id).aggregate(Avg('score'))['score__avg']
         if not rating:
