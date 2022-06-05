@@ -1,10 +1,12 @@
+from multiprocessing import context
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from reviews.models import User, Titles, Genres, Categories, Reviews, Comments
+from reviews.models import User, Title, Genres, Categories, Review, Comments
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import User
 
@@ -72,8 +74,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Reviews
-        fields = 'id', 'text', 'author', 'score', 'pub_date'
+        model = Review
+        fields = 'id', 'text', 'author', 'score', 'pub_date', 'title'
         read_only_fields = ('id', 'author', 'title')
 
 
@@ -104,11 +106,13 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'name', 'year', 'category', 'genre', 'rating')
-        model = Titles
+        model = Title
         read_only_fields = ('id', 'category', 'genre')
 
     def get_rating(self, obj):
-        rating = Reviews.objects.filter(title=obj.id).aggregate(Avg('score'))['score__avg']
+        rating = Review.objects.filter(
+            title=obj.id
+        ).aggregate(Avg('score'))['score__avg']
         if not rating:
             return None
         return rating

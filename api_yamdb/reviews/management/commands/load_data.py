@@ -3,7 +3,7 @@ import os
 from django.core.management import BaseCommand
 
 from reviews.models import (
-    User, Titles, Categories, Genres, GenreTitle, Reviews, Comments
+    User, Title, Categories, Genres, GenreTitle, Review, Comments
 )
 
 
@@ -75,7 +75,7 @@ class Command(BaseCommand):
         print('Loading data genre')
 
         for row in DictReader(open(DATA_PATCH['titles'])):
-            title = Titles(
+            title = Title(
                 id=row['id'],
                 name=row['name'],
                 year=row['year'],
@@ -96,7 +96,7 @@ class Command(BaseCommand):
         print('Loading data genre_title')
 
         for row in DictReader(open(DATA_PATCH['review'])):
-            review = Reviews(
+            review = Review(
                 id=row['id'],
                 title_id=row['title_id'],
                 text=row['text'],

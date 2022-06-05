@@ -47,7 +47,7 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.author == request.user
-    
+
 
 class IsAuthorOrAdminOrModeratorOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -60,9 +60,8 @@ class IsAuthorOrAdminOrModeratorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        
+
         if request.method in ['POST']:
-            print(request.user.is_authenticated)
             return (
                 request.user.is_authenticated
             )

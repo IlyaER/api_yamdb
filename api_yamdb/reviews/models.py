@@ -49,7 +49,7 @@ class Genres(models.Model):
         ordering = ('pk',)
 
 
-class Titles(models.Model): 
+class Title(models.Model): 
     name = models.CharField(max_length=64)
     year = models.IntegerField(
         validators=[MinValueValidator(1000), max_value_current_year])
@@ -66,16 +66,16 @@ class Titles(models.Model):
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genres, on_delete=models.SET_NULL, null=True)
-    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE
     )
     text = models.TextField()
     title = models.ForeignKey(
-        Titles, on_delete=models.CASCADE
+        Title, on_delete=models.CASCADE
     )
     score = models.PositiveIntegerField(
         default=None,
@@ -98,7 +98,7 @@ class Comments(models.Model):
         User, on_delete=models.CASCADE
     )
     review = models.ForeignKey(
-        Reviews, on_delete=models.CASCADE
+        Review, on_delete=models.CASCADE
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
