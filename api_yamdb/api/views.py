@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt import tokens
 
-from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAuthorOrAdminOrReadOnly
+from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly
 from .serializers import (
     UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer
@@ -120,7 +120,8 @@ class CategoryViewSet(ModelViewSet):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthorOrAdminOrReadOnly, ]
+    permission_classes = [IsAuthorOrAdminOrModeratorOrReadOnly, ]
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -132,11 +133,12 @@ class ReviewViewSet(ModelViewSet):
             author=self.request.user,
             title=title,
         )
-    
+
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorOrAdminOrReadOnly, ]
+    permission_classes = [IsAuthorOrAdminOrModeratorOrReadOnly, ]
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -148,3 +150,8 @@ class CommentViewSet(ModelViewSet):
             author=self.request.user,
             review=review,
         )
+        
+    # def destroy(self, *args, **kwargs):
+    #     serializer = self.get_serializer(self.get_object())
+    #     super().destroy(*args, **kwargs)
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
