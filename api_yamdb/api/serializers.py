@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
 from reviews.models import User, Titles, Genres, Categories, Reviews, Comments
 
@@ -73,8 +74,10 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    category = SlugRelatedField(slug_field='name', read_only=True)
+
     class Meta:
-        fields = ('name', 'year', 'category', 'genre')
+        fields = ('id', 'name', 'year', 'category', 'genre')
         model = Titles
 
 
