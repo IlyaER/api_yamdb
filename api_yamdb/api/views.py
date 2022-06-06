@@ -11,7 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt import tokens
 
 from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly, \
-    IsAuthorOrReadOnly
+    IsAuthorOrReadOnly, IsAdminNoModerator
 from .serializers import (
     UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer
@@ -94,11 +94,16 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
+    filter_backends = (SearchFilter, )
+    search_fields = ('name', 'year', 'category', 'genre')
 
-    #def perform_create(self, serializer):
-    #    category = get_object_or_404(Categories, name=self.request.data.get('category'))
-    #    return serializer.save(category=category)
+    def perform_create(self, serializer):
+        category = get_object_or_404(Categories, slug=self.request.data.get('category'))
+        return serializer.save(category=category)
 
+    def perform_update(self, serializer):
+        category = get_object_or_404(Categories, slug=self.request.data.get('category'))
+        return serializer.save(category=category)
     #def perform_create(self, serializer):
     #    serializer.save(category=get_object_or_404(Categories, name=self.request.data.get('category')))
 
@@ -115,7 +120,7 @@ class GenreViewSet(ModelViewSet):
 class CategoryViewSet(ModelViewSet):
     queryset = Categories.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAdminNoModerator,)
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, )
     search_fields = ('name',)
