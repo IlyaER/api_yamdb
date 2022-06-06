@@ -12,7 +12,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework_simplejwt import tokens
 
 from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly, \
-    IsAuthorOrReadOnly, IsAdminOrReadOnly2, IsAdmin
+    IsAuthorOrReadOnly, IsAdminOrReadOnly2, IsAdmin, IsAdminNoModerator
 from .serializers import (
     UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer
@@ -95,11 +95,16 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
+    filter_backends = (SearchFilter, )
+    search_fields = ('name', 'year', 'category', 'genre')
 
-    #def perform_create(self, serializer):
-    #    category = get_object_or_404(Categories, name=self.request.data.get('category'))
-    #    return serializer.save(category=category)
+    def perform_create(self, serializer):
+        category = get_object_or_404(Categories, slug=self.request.data.get('category'))
+        return serializer.save(category=category)
 
+    def perform_update(self, serializer):
+        category = get_object_or_404(Categories, slug=self.request.data.get('category'))
+        return serializer.save(category=category)
     #def perform_create(self, serializer):
     #    serializer.save(category=get_object_or_404(Categories, name=self.request.data.get('category')))
 
@@ -127,7 +132,7 @@ class GenreViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericV
 class CategoryViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Categories.objects.all().order_by('id')
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly2, )
+    permission_classes = (IsAdminNoModerator,)
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, )
     search_fields = ('name',)
