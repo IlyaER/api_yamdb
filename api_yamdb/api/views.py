@@ -10,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt import tokens
 
-from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly
+from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly, \
+    IsAuthorOrReadOnly
 from .serializers import (
     UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer
@@ -116,6 +117,8 @@ class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
+    filter_backends = (SearchFilter, )
+    search_fields = ('name',)
 
 
 class ReviewViewSet(ModelViewSet):
