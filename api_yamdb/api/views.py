@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import FilterSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, DestroyModelMixin
 from rest_framework.pagination import PageNumberPagination
@@ -90,21 +92,31 @@ def get_token(request):
     return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
 
 
+# class TitleFilter(FilterSet):
+#     class Meta:
+#         model = Genres
+#         fields = ['slug', ]
+
+
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
-    filter_backends = (SearchFilter, )
+    # filterset_class = TitleFilter
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_fields = ('genre__slug', )
     search_fields = ('name', 'year', 'category', 'genre')
 
     def perform_create(self, serializer):
-        category = get_object_or_404(Categories, slug=self.request.data.get('category'))
-        return serializer.save(category=category)
+        category = Categories.objects.get(slug=self.request.data.get('category'))
+        genre = Genres.objects.filter(slug__in=self.request.data.getlist('genre'))
+        description = self.request.data.get('description')
+        return serializer.save(category=category, genre=genre, description=description)
 
     def perform_update(self, serializer):
-        category = get_object_or_404(Categories, slug=self.request.data.get('category'))
-        return serializer.save(category=category)
+         category = get_object_or_404(Categories, slug=self.request.data.get('category'))
+         return serializer.save(category=category)
     #def perform_create(self, serializer):
     #    serializer.save(category=get_object_or_404(Categories, name=self.request.data.get('category')))
 

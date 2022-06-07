@@ -63,6 +63,7 @@ class Title(models.Model):
         Genres,
         through='GenreTitle'
     )
+    description = models.TextField(max_length=200, blank=True, null=True)
 
     class Meta:
         ordering = ('pk',)
