@@ -5,7 +5,8 @@ from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from django_filters import FilterSet
+from django_filters import FilterSet, Filter
+from django_filters import rest_framework as filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, DestroyModelMixin
 from rest_framework.pagination import PageNumberPagination
@@ -92,10 +93,18 @@ def get_token(request):
     return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
 
 
-# class TitleFilter(FilterSet):
-#     class Meta:
-#         model = Genres
-#         fields = ['slug', ]
+
+class TitleFilter(filters.FilterSet):
+    """Фильтры для произведений."""
+
+    genre = filters.CharFilter(field_name="genre__slug")
+    category = filters.CharFilter(field_name="category__slug")
+    name = filters.CharFilter(field_name="name", lookup_expr="icontains")
+    year = filters.NumberFilter(field_name="year")
+
+    class Meta:
+        model = Title
+        fields = ["genre", "category", "name", "year"]
 
 
 class TitleViewSet(ModelViewSet):
@@ -103,10 +112,10 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
-    # filterset_class = TitleFilter
+    filterset_class = TitleFilter
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('genre__slug', )
-    search_fields = ('name', 'year', 'category', 'genre')
+    filterset_fields = ('genre', )
+    search_fields = ('genre', )
 
     def perform_create(self, serializer):
         category = Categories.objects.get(slug=self.request.data.get('category'))
@@ -126,8 +135,10 @@ class GenreViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericV
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly2, ]
     pagination_class = PageNumberPagination
-    filter_backends = (SearchFilter, )
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_fields = ('name', )
     search_fields = ('name',)
+    lookup_field = 'slug'
 
     def destroy(self, request, *args, **kwargs):
         if not request.user.is_anonymous:
@@ -148,7 +159,7 @@ class CategoryViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, Gener
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, )
     search_fields = ('name',)
-    
+
     def destroy(self, request, *args, **kwargs):
         if not request.user.is_anonymous:
             slug = self.kwargs.get('pk')
