@@ -9,7 +9,7 @@ def current_year():
 
 
 def max_value_current_year(value):
-    return MaxValueValidator(current_year())(value)   
+    return MaxValueValidator(current_year())(value)
 
 
 class User(AbstractUser):

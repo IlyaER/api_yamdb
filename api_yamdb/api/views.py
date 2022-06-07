@@ -4,18 +4,20 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from django_filters import FilterSet, Filter
-from django_filters import rest_framework as filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, DestroyModelMixin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework_simplejwt import tokens
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .permissions import IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly, \
-    IsAuthorOrReadOnly, IsAdminOrReadOnly2, IsAdmin, IsAdminNoModerator
+from .filters import TitleFilter
+from .permissions import (
+    IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly,
+    IsAuthorOrAdminOrModeratorOrReadOnly,
+    IsAdminOrReadOnly2, IsAdmin, IsAdminNoModerator
+)
 from .serializers import (
     UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
     ReviewSerializer
@@ -93,20 +95,6 @@ def get_token(request):
     return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
 
 
-
-class TitleFilter(filters.FilterSet):
-    """Фильтры для произведений."""
-
-    genre = filters.CharFilter(field_name="genre__slug")
-    category = filters.CharFilter(field_name="category__slug")
-    name = filters.CharFilter(field_name="name", lookup_expr="icontains")
-    year = filters.NumberFilter(field_name="year")
-
-    class Meta:
-        model = Title
-        fields = ["genre", "category", "name", "year"]
-
-
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
@@ -114,8 +102,6 @@ class TitleViewSet(ModelViewSet):
     pagination_class = PageNumberPagination
     filterset_class = TitleFilter
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('genre', )
-    search_fields = ('genre', )
 
     def perform_create(self, serializer):
         category = Categories.objects.get(slug=self.request.data.get('category'))
@@ -126,8 +112,6 @@ class TitleViewSet(ModelViewSet):
     def perform_update(self, serializer):
          category = get_object_or_404(Categories, slug=self.request.data.get('category'))
          return serializer.save(category=category)
-    #def perform_create(self, serializer):
-    #    serializer.save(category=get_object_or_404(Categories, name=self.request.data.get('category')))
 
 
 class GenreViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet):
