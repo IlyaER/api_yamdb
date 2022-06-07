@@ -20,46 +20,13 @@ from reviews.models import Categories, Comments, Genres, Review, Title, User
 from .filters import TitleFilter
 from .permissions import (
     IsAdmin, IsAdminNoModerator, IsAdminOrReadOnly,
-    IsAdminOrReadOnly2, IsAuthorOrAdmin,
-    IsAuthorOrAdminOrModeratorOrReadOnly
+    IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, Confirmation,
     GenreSerializer, Registration, ReviewSerializer,
     TitleSerializer, UserSerializer
 )
-
-
-class UserViewSet(ModelViewSet):
-    queryset = User.objects.all().order_by('id')
-    serializer_class = UserSerializer
-    permission_classes = [IsAdmin, IsAuthenticated]
-    filter_backends = [SearchFilter]
-    lookup_field = 'username'
-    search_fields = ['username']
-
-    @action(methods=['patch', 'get'],
-            permission_classes=[IsAuthenticated, IsAuthorOrAdmin],
-            detail=False,
-            url_path='me',
-            url_name='me')
-    def me(self, request, *args, **kwargs):
-        user = self.request.user
-        serializer = self.get_serializer(user)
-        if self.request.method == 'PATCH':
-            role = request.data.get('role') or None
-            if role in ['admin', 'moderator'] and not user.is_staff:
-                return Response(serializer.data)
-            serializer = self.get_serializer(
-                user,
-                data=request.data,
-                partial=True
-            )
-            serializer.is_valid(
-                raise_exception=True
-            )
-            serializer.save()
-        return Response(serializer.data)
 
 
 @api_view(['POST'])
@@ -100,6 +67,38 @@ def get_token(request):
     return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
 
 
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdmin, IsAuthenticated]
+    filter_backends = [SearchFilter]
+    lookup_field = 'username'
+    search_fields = ['username']
+
+    @action(methods=['patch', 'get'],
+            permission_classes=[IsAuthenticated, IsAuthorOrAdmin],
+            detail=False,
+            url_path='me',
+            url_name='me')
+    def me(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.get_serializer(user)
+        if self.request.method == 'PATCH':
+            role = request.data.get('role') or None
+            if role in ['admin', 'moderator'] and not user.is_staff:
+                return Response(serializer.data)
+            serializer = self.get_serializer(
+                user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(
+                raise_exception=True
+            )
+            serializer.save()
+        return Response(serializer.data)
+
+
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
@@ -128,14 +127,11 @@ class TitleViewSet(ModelViewSet):
 
 
 class GenreViewSet(
-    ListModelMixin,
-    CreateModelMixin,
-    DestroyModelMixin,
-    GenericViewSet
+    ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet
 ):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly2, ]
+    permission_classes = [IsAdminOrReadOnly, ]
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('name', )
@@ -144,10 +140,7 @@ class GenreViewSet(
 
 
 class CategoryViewSet(
-    ListModelMixin,
-    CreateModelMixin,
-    DestroyModelMixin,
-    GenericViewSet
+    ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet
 ):
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
@@ -175,7 +168,7 @@ class ReviewViewSet(ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        return Review.objects.filter(title_id=title_id).all().order_by('id')
+        return Review.objects.filter(title_id=title_id).all()
 
     def create(self, request, *args, **kwargs):
         review_have_this_author = Review.objects.filter(

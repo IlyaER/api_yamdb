@@ -84,20 +84,3 @@ class IsAuthorOrAdminOrModeratorOrReadOnly(permissions.BasePermission):
                 or request.user.role in ['admin', 'moderator']
             )
         return True
-
-
-class IsAdminOrReadOnly2(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        return (
-            request.user.is_authenticated
-            and request.user.role in ['admin']
-            or request.user.is_staff
-        )
-
-    def has_object_permission(self, request, view, obj):
-        return (
-            not request.user.is_anonymous and request.user.role in ['admin', ]
-        )

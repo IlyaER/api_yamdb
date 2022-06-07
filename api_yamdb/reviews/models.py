@@ -33,6 +33,9 @@ class User(AbstractUser):
         default=USER
     )
 
+    class Meta:
+        ordering = ('pk',)
+
 
 class Categories(models.Model):
     name = models.CharField(max_length=64)
