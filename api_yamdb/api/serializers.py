@@ -99,7 +99,7 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'year', 'category', 'genre', 'rating')
         model = Title
-        read_only_fields = ('id', 'category', 'genre')
+        read_only_fields = ('id',)
 
     def get_rating(self, obj):
         rating = Review.objects.filter(

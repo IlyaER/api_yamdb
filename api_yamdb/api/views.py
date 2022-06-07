@@ -100,7 +100,9 @@ class TitleViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         category = get_object_or_404(Categories, slug=self.request.data.get('category'))
-        return serializer.save(category=category)
+        genre = Genres.objects.filter(slug__in=self.request.data.getlist('genre'))
+
+        return serializer.save(category=category, genre=genre)
 
     def perform_update(self, serializer):
         category = get_object_or_404(Categories, slug=self.request.data.get('category'))
