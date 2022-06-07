@@ -1,28 +1,33 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, DestroyModelMixin
+from rest_framework.mixins import (
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin
+)
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt import tokens
-from django_filters.rest_framework import DjangoFilterBackend
+from reviews.models import Categories, Comments, Genres, Review, Title, User
 
 from .filters import TitleFilter
 from .permissions import (
-    IsAdmin, IsAuthorOrAdmin, IsAdminOrReadOnly,
-    IsAuthorOrAdminOrModeratorOrReadOnly,
-    IsAdminOrReadOnly2, IsAdmin, IsAdminNoModerator
+    IsAdmin, IsAdminNoModerator, IsAdminOrReadOnly,
+    IsAdminOrReadOnly2, IsAuthorOrAdmin,
+    IsAuthorOrAdminOrModeratorOrReadOnly
 )
 from .serializers import (
-    UserSerializer, Confirmation, Registration, CommentSerializer, TitleSerializer, GenreSerializer, CategorySerializer,
-    ReviewSerializer
+    CategorySerializer, CommentSerializer, Confirmation,
+    GenreSerializer, Registration, ReviewSerializer,
+    TitleSerializer, UserSerializer
 )
-from reviews.models import User, Title, Genres, Review, Comments, Categories
 
 
 class UserViewSet(ModelViewSet):
@@ -104,40 +109,47 @@ class TitleViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend, SearchFilter)
 
     def perform_create(self, serializer):
-        category = Categories.objects.get(slug=self.request.data.get('category'))
-        genre = Genres.objects.filter(slug__in=self.request.data.getlist('genre'))
+        category = Categories.objects.get(
+            slug=self.request.data.get('category')
+        )
+        genre = Genres.objects.filter(
+            slug__in=self.request.data.getlist('genre')
+        )
         description = self.request.data.get('description')
-        return serializer.save(category=category, genre=genre, description=description)
+        return serializer.save(
+            category=category, genre=genre, description=description
+        )
 
     def perform_update(self, serializer):
-         category = get_object_or_404(Categories, slug=self.request.data.get('category'))
-         return serializer.save(category=category)
+        category = get_object_or_404(
+            Categories, slug=self.request.data.get('category')
+        )
+        return serializer.save(category=category)
 
 
-class GenreViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet):
+class GenreViewSet(
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+    GenericViewSet
+):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly2, ]
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('name', )
-    search_fields = ('name',)
+    search_fields = ('name', 'slug')
     lookup_field = 'slug'
 
-    def destroy(self, request, *args, **kwargs):
-        if not request.user.is_anonymous:
-            slug = self.kwargs.get('pk')
-            instance = Genres.objects.filter(slug=slug)
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-    def perform_destroy(self, instance):
-        instance.delete()
-
-
-class CategoryViewSet(ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet):
-    queryset = Categories.objects.all().order_by('id')
+class CategoryViewSet(
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+    GenericViewSet
+):
+    queryset = Categories.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminNoModerator,)
     pagination_class = PageNumberPagination
@@ -172,10 +184,14 @@ class ReviewViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if bool(review_have_this_author):
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -200,8 +216,3 @@ class CommentViewSet(ModelViewSet):
             author=self.request.user,
             review=review,
         )
-        
-    # def destroy(self, *args, **kwargs):
-    #     serializer = self.get_serializer(self.get_object())
-    #     super().destroy(*args, **kwargs)
-    #     return Response(status=status.HTTP_204_NO_CONTENT)

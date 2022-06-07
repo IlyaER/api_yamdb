@@ -1,17 +1,12 @@
-from csv import DictReader
 import os
-from django.core.management import BaseCommand
+from csv import DictReader
 
+from django.core.management import BaseCommand
 from reviews.models import (
-    User, Title, Categories, Genres, GenreTitle, Review, Comments
+    Categories, Comments, Genres,
+    GenreTitle, Review, Title, User
 )
 
-
-ALREDY_LOADED_ERROR_MESSAGE = '''
-If you need to reload the child data from the CSV file,
-first delete the db.sqlite3 file to destroy the database.
-Then, run `python manage.py migrate` for a new empty
-database with tables'''
 DATA_DIR = 'static/data'
 DATA_PATCH = {
     'users': os.path.join(DATA_DIR, 'users.csv'),
@@ -25,20 +20,9 @@ DATA_PATCH = {
 
 
 class Command(BaseCommand):
-    # Show this when the user types help
     help = 'Loads data from api_yamdb/static/data/*.csv'
 
     def handle(self, *args, **options):
-
-        # Show this if the data already exist in the database
-        # if User.objects.exists():
-        #     print('child data already loaded...exiting.')
-        #     print(ALREDY_LOADED_ERROR_MESSAGE)
-        #     return
-
-        # Show this before loading the data into the database
-        print('Loading data')
-
         # Code to load the data into database
         for row in DictReader(open(DATA_PATCH['users'])):
             user = User(
@@ -63,7 +47,7 @@ class Command(BaseCommand):
             category.save()
 
         print('Loading data category')
-        
+
         for row in DictReader(open(DATA_PATCH['genre'])):
             genre = Genres(
                 id=row['id'],
@@ -86,7 +70,7 @@ class Command(BaseCommand):
         print('Loading data title')
 
         for row in DictReader(open(DATA_PATCH['genre_title'])):
-            genre_title=GenreTitle(
+            genre_title = GenreTitle(
                 id=row['id'],
                 title_id=row['title_id'],
                 genre_id=row['genre_id'],

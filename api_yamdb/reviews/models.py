@@ -1,7 +1,8 @@
 import datetime
+
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 def current_year():
@@ -49,7 +50,7 @@ class Genres(models.Model):
         ordering = ('pk',)
 
 
-class Title(models.Model): 
+class Title(models.Model):
     name = models.CharField(max_length=64)
     year = models.IntegerField(
         validators=[MinValueValidator(1000), max_value_current_year])

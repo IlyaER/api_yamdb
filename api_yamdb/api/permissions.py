@@ -96,9 +96,8 @@ class IsAdminOrReadOnly2(permissions.BasePermission):
             and request.user.role in ['admin']
             or request.user.is_staff
         )
-        
+
     def has_object_permission(self, request, view, obj):
-        return ( not request.user.is_anonymous and
-                request.user.role in ['admin', ]
+        return (
+            not request.user.is_anonymous and request.user.role in ['admin', ]
         )
-        return False

@@ -1,14 +1,7 @@
-from multiprocessing import context
 from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-
-from reviews.models import User, Title, Genres, Categories, Review, Comments
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from reviews.models import User
+from reviews.models import Categories, Comments, Genres, Review, Title, User
 
 
 class Registration(serializers.Serializer):
@@ -52,7 +45,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'first_name', 'last_name', 'username',
-            'bio', 'email', 'role',)
+            'bio', 'email', 'role',
+        )
         extra_kwargs = {
             'username': {
                 'required': True
@@ -97,7 +91,11 @@ class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'category', 'genre', 'rating')
+        fields = (
+            'id', 'name', 'year',
+            'description', 'category',
+            'genre', 'rating',
+        )
         model = Title
         read_only_fields = ('id', )
 
