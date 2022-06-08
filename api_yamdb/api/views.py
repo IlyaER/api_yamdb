@@ -22,8 +22,8 @@ from users.models import User
 
 from .filters import TitleFilter
 from .permissions import (
-    IsAdmin, IsAdminNoModerator, IsAdminOrReadOnly,
-    IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly
+    IsAdmin, IsAdminOrReadOnly,
+    IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly,
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, Confirmation,
@@ -150,7 +150,7 @@ class GenreViewSet(CreateListDestroyViewSet):
 class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminNoModerator,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, )
     search_fields = ('name',)
