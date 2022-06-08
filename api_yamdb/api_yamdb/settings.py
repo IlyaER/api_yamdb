@@ -125,3 +125,5 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
+
+ADMIN_MAIL = 'support@yamdb.ru'

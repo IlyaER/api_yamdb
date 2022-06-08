@@ -15,6 +15,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt import tokens
+
+from api_yamdb.settings import ADMIN_MAIL
 from reviews.models import Categories, Comments, Genres, Review, Title
 from users.models import User
 
@@ -43,9 +45,9 @@ def send_code(request):
     confirmation_code = PasswordResetTokenGenerator().make_token(user)
     send_mail('Код подтверждения для Yamdb',
               f'Ваш код подтверждения: {confirmation_code}',
-              'support@yamdb.ru',
+              ADMIN_MAIL,
               [email])
-    answer = {'email': f'{email}', 'username': f'{username}'}
+    answer = {'email': email, 'username': username}
     return Response(
         answer,
         status=status.HTTP_200_OK
@@ -80,22 +82,20 @@ class UserViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated, IsAuthorOrAdmin],
             detail=False,
             url_path='me',
-            url_name='me')
+            url_name='me'
+    )
     def me(self, request, *args, **kwargs):
         user = self.request.user
         serializer = self.get_serializer(user)
         if self.request.method == 'PATCH':
-            role = request.data.get('role') or None
-            if role in ['admin', 'moderator'] and not user.is_staff:
+            if not (user.is_admin or user.is_moderator) and not user.is_staff:
                 return Response(serializer.data)
             serializer = self.get_serializer(
                 user,
                 data=request.data,
                 partial=True
             )
-            serializer.is_valid(
-                raise_exception=True
-            )
+            serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data)
 
