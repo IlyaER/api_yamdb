@@ -19,9 +19,13 @@ class Registration(serializers.Serializer):
         return username
 
     def validate(self, attrs):
-        if User.objects.filter(username=attrs.get('username')).exists():
+        email = attrs.get('email')
+        username = attrs.get('username')
+        if User.objects.filter(email=email, username=username).exists():
+            return attrs
+        if User.objects.filter(username=username).exists():
             raise serializers.ValidationError('Имя уже существует.')
-        if User.objects.filter(email=attrs.get('email')).exists():
+        if User.objects.filter(email=email).exists():
             raise serializers.ValidationError('Почта уже существует.')
         return attrs
 
