@@ -15,7 +15,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt import tokens
-from reviews.models import Categories, Comments, Genres, Review, Title, User
+from reviews.models import Categories, Comments, Genres, Review, Title
+from users.models import User
 
 from .filters import TitleFilter
 from .permissions import (

@@ -1,8 +1,9 @@
 import datetime
 
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from users.models import User
 
 
 def current_year():
@@ -11,30 +12,6 @@ def current_year():
 
 def max_value_current_year(value):
     return MaxValueValidator(current_year())(value)
-
-
-class User(AbstractUser):
-    USER = 'user'
-    MODERATOR = 'moderator'
-    ADMIN = 'admin'
-    USERROLES = [
-        (USER, 'User'),
-        (MODERATOR, 'Moderator'),
-        (ADMIN, 'Admin')
-    ]
-    bio = models.TextField(
-        'Биография',
-        blank=True,
-    )
-    role = models.CharField(
-        'Роль',
-        max_length=20,
-        choices=USERROLES,
-        default=USER
-    )
-
-    class Meta:
-        ordering = ('pk',)
 
 
 class Categories(models.Model):
