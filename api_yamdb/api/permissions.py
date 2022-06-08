@@ -71,9 +71,7 @@ class IsAuthorOrAdminOrModeratorOrReadOnly(permissions.BasePermission):
             return True
 
         if request.method in ['POST']:
-            return (
-                request.user.is_authenticated
-            )
+            return request.user.is_authenticated
 
         if request.method in ['PATCH', 'DELETE']:
             return (
