@@ -61,7 +61,7 @@ class Review(models.Model):
     )
     text = models.TextField()
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE
+        Title, on_delete=models.CASCADE, related_name='review'
     )
     score = models.PositiveIntegerField(
         default=None,

@@ -32,6 +32,13 @@ from .serializers import (
 )
 
 
+class CreateListDestroyViewSet(CreateModelMixin,
+                               ListModelMixin,
+                               DestroyModelMixin,
+                               GenericViewSet):
+    pass
+
+
 @api_view(['POST'])
 def send_code(request):
     serializer = Registration(data=request.data)
@@ -129,9 +136,7 @@ class TitleViewSet(ModelViewSet):
         return serializer.save(category=category)
 
 
-class GenreViewSet(
-    ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet
-):
+class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly, ]
@@ -142,9 +147,7 @@ class GenreViewSet(
     lookup_field = 'slug'
 
 
-class CategoryViewSet(
-    ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet
-):
+class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminNoModerator,)
