@@ -38,15 +38,17 @@ def send_code(request):
     serializer.is_valid(raise_exception=True)
     email = serializer.data.get('email')
     username = serializer.data.get('username')
-    user = User.objects.get_or_create(
+    user, created = User.objects.get_or_create(
         email=email,
         username=username
-    )[0]
+    )
     confirmation_code = PasswordResetTokenGenerator().make_token(user)
-    send_mail('Код подтверждения для Yamdb',
-              f'Ваш код подтверждения: {confirmation_code}',
-              ADMIN_MAIL,
-              [email])
+    send_mail(
+        'Код подтверждения для Yamdb',
+        f'Ваш код подтверждения: {confirmation_code}',
+        ADMIN_MAIL,
+        [email]
+    )
     answer = {'email': email, 'username': username}
     return Response(
         answer,
