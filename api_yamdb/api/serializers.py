@@ -13,16 +13,15 @@ class Registration(serializers.Serializer):
         required=True
     )
 
-    def validate(self, attrs):
-        if attrs.get('username') == 'me':
+    def validate_username(self, username):
+        if username == 'me':
             raise serializers.ValidationError('Недопустимое имя.')
-        if User.objects.filter(
-                username=attrs.get('username')
-        ).exists():
+        return username
+
+    def validate(self, attrs):
+        if User.objects.filter(username=attrs.get('username')).exists():
             raise serializers.ValidationError('Имя уже существует.')
-        if User.objects.filter(
-                email=attrs.get('email')
-        ).exists():
+        if User.objects.filter(email=attrs.get('email')).exists():
             raise serializers.ValidationError('Почта уже существует.')
         return attrs
 
