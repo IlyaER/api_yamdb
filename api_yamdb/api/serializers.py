@@ -1,4 +1,4 @@
-from django.db.models import Avg
+# from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from reviews.models import Categories, Comments, Genres, Review, Title
@@ -89,10 +89,10 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genres
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleViewSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True, required=False, read_only=True)
     category = CategorySerializer(required=False, read_only=True)
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.IntegerField()
 
     class Meta:
         fields = (
@@ -101,15 +101,23 @@ class TitleSerializer(serializers.ModelSerializer):
             'genre', 'rating',
         )
         model = Title
-        read_only_fields = ('id', )
+        read_only_fields = ('id', 'rating')
 
-    def get_rating(self, obj):
-        rating = Review.objects.filter(
-            title=obj.id
-        ).aggregate(Avg('score'))['score__avg']
-        if not rating:
-            return None
-        return rating
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug', many=False, queryset=Categories.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        many=True,
+        required=False,
+        queryset=Genres.objects.all()
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Title
 
 
 class CommentSerializer(serializers.ModelSerializer):

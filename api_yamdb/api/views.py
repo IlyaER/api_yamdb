@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -6,9 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.mixins import (
-    CreateModelMixin,
-    DestroyModelMixin,
-    ListModelMixin
+    CreateModelMixin, DestroyModelMixin, ListModelMixin
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -16,11 +15,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt import tokens
 
-from api_yamdb.settings import ADMIN_MAIL
-from reviews.models import Categories, Comments, Genres, Review, Title
+from reviews.models import Categories, Genres, Review, Title
 from users.models import User
 
-from .filters import TitleFilter
+from api_yamdb.settings import ADMIN_MAIL
+from reviews.filters import TitleFilter
 from .permissions import (
     IsAdmin, IsAdminOrReadOnly,
     IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly,
@@ -28,14 +27,14 @@ from .permissions import (
 from .serializers import (
     CategorySerializer, CommentSerializer, Confirmation,
     GenreSerializer, Registration, ReviewSerializer,
-    TitleSerializer, UserSerializer
+    TitleSerializer, UserSerializer, TitleViewSerializer
 )
 
 
-class CreateListDestroyViewSet(CreateModelMixin,
-                               ListModelMixin,
-                               DestroyModelMixin,
-                               GenericViewSet):
+class CreateListDestroyViewSet(
+    CreateModelMixin, ListModelMixin,
+    DestroyModelMixin, GenericViewSet
+):
     pass
 
 
@@ -87,11 +86,12 @@ class UserViewSet(ModelViewSet):
     lookup_field = 'username'
     search_fields = ['username']
 
-    @action(methods=['patch', 'get'],
-            permission_classes=[IsAuthenticated, IsAuthorOrAdmin],
-            detail=False,
-            url_path='me',
-            url_name='me'
+    @action(
+        methods=['patch', 'get'],
+        permission_classes=[IsAuthenticated, IsAuthorOrAdmin],
+        detail=False,
+        url_path='me',
+        url_name='me'
     )
     def me(self, request, *args, **kwargs):
         user = self.request.user
@@ -110,12 +110,19 @@ class UserViewSet(ModelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(
+        rating=Avg('review__score')
+    ).order_by('pk')
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filterset_class = TitleFilter
     filter_backends = (DjangoFilterBackend, SearchFilter)
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TitleViewSerializer
+        return TitleSerializer
 
     def perform_create(self, serializer):
         category = Categories.objects.get(
@@ -163,7 +170,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
     def perform_destroy(self, instance):
         instance.delete()
 
@@ -207,12 +213,18 @@ class CommentViewSet(ModelViewSet):
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-        review_id = self.kwargs.get('review_id')
-        return Comments.objects.filter(review_id=review_id).all()
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        try:
+            review = title.review.get(id=self.kwargs.get('review_id'))
+        except TypeError:
+            TypeError('Нет ревью на это произведение')
+        queryset = review.comments.all()
+        return queryset
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
-        serializer.save(
-            author=self.request.user,
-            review=review,
-        )
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        try:
+            review = title.review.get(id=self.kwargs.get('review_id'))
+        except TypeError:
+            TypeError('Нет отзыва у этого произведения')
+        serializer.save(author=self.request.user, review=review)
