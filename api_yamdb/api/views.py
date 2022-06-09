@@ -22,14 +22,21 @@ from users.models import User
 
 from .filters import TitleFilter
 from .permissions import (
-    IsAdmin, IsAdminNoModerator, IsAdminOrReadOnly,
-    IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly
+    IsAdmin, IsAdminOrReadOnly,
+    IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly,
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, Confirmation,
     GenreSerializer, Registration, ReviewSerializer,
     TitleSerializer, UserSerializer
 )
+
+
+class CreateListDestroyViewSet(CreateModelMixin,
+                               ListModelMixin,
+                               DestroyModelMixin,
+                               GenericViewSet):
+    pass
 
 
 @api_view(['POST'])
@@ -129,9 +136,7 @@ class TitleViewSet(ModelViewSet):
         return serializer.save(category=category)
 
 
-class GenreViewSet(
-    ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet
-):
+class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly, ]
@@ -142,23 +147,22 @@ class GenreViewSet(
     lookup_field = 'slug'
 
 
-class CategoryViewSet(
-    ListModelMixin, CreateModelMixin, DestroyModelMixin, GenericViewSet
-):
+class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminNoModerator,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, )
     search_fields = ('name',)
 
     def destroy(self, request, *args, **kwargs):
-        if not request.user.is_anonymous:
-            slug = self.kwargs.get('pk')
-            instance = Categories.objects.filter(slug=slug)
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        slug = self.kwargs.get('pk')
+        instance = Categories.objects.filter(slug=slug)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
     def perform_destroy(self, instance):
         instance.delete()
@@ -176,7 +180,7 @@ class ReviewViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         review_have_this_author = Review.objects.filter(
             title=self.kwargs.get('title_id'), author=self.request.user
-        )
+        ).exists()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if bool(review_have_this_author):
