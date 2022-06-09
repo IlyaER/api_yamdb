@@ -180,7 +180,7 @@ class ReviewViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         review_have_this_author = Review.objects.filter(
             title=self.kwargs.get('title_id'), author=self.request.user
-        )
+        ).exists()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if bool(review_have_this_author):
