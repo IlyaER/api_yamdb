@@ -156,12 +156,13 @@ class CategoryViewSet(CreateListDestroyViewSet):
     search_fields = ('name',)
 
     def destroy(self, request, *args, **kwargs):
-        if not request.user.is_anonymous:
-            slug = self.kwargs.get('pk')
-            instance = Categories.objects.filter(slug=slug)
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        slug = self.kwargs.get('pk')
+        instance = Categories.objects.filter(slug=slug)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
     def perform_destroy(self, instance):
         instance.delete()
