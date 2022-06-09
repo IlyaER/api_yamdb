@@ -33,7 +33,11 @@ class Genres(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=64)
     year = models.IntegerField(
-        validators=[MinValueValidator(1000), max_value_current_year])
+        validators=[
+            MinValueValidator(-9999),
+            max_value_current_year
+        ]
+    )
     category = models.ForeignKey(
         Categories,
         on_delete=models.SET_NULL,
@@ -63,7 +67,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='review'
     )
-    score = models.PositiveIntegerField(
+    score = models.PositiveSmallIntegerField(
         default=None,
         validators=[
             MaxValueValidator(10),
