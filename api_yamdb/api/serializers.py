@@ -1,4 +1,3 @@
-# from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from reviews.models import Categories, Comments, Genres, Review, Title
@@ -73,7 +72,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = 'id', 'text', 'author', 'score', 'pub_date', 'title'
+        fields = (
+            'id', 'text', 'author', 'score', 'pub_date', 'title'
+        )
         read_only_fields = ('id', 'author', 'title')
 
 

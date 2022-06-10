@@ -1,6 +1,7 @@
+from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.db.models import Avg
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
@@ -14,20 +15,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt import tokens
-
+from reviews.filters import TitleFilter
 from reviews.models import Categories, Genres, Review, Title
 from users.models import User
 
-from api_yamdb.settings import ADMIN_MAIL
-from reviews.filters import TitleFilter
 from .permissions import (
-    IsAdmin, IsAdminOrReadOnly,
-    IsAuthorOrAdmin, IsAuthorOrAdminOrModeratorOrReadOnly,
+    IsAdmin, IsAdminOrReadOnly, IsAuthorOrAdmin,
+    IsAuthorOrAdminOrModeratorOrReadOnly
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, Confirmation,
     GenreSerializer, Registration, ReviewSerializer,
-    TitleSerializer, UserSerializer, TitleViewSerializer
+    TitleSerializer, TitleViewSerializer, UserSerializer
 )
 
 
@@ -52,7 +51,7 @@ def send_code(request):
     send_mail(
         'Код подтверждения для Yamdb',
         f'Ваш код подтверждения: {confirmation_code}',
-        ADMIN_MAIL,
+        settings.ADMIN_MAIL,
         [email]
     )
     answer = {'email': email, 'username': username}
@@ -213,18 +212,24 @@ class CommentViewSet(ModelViewSet):
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         try:
-            review = title.review.get(id=self.kwargs.get('review_id'))
+            review = get_object_or_404(
+                Review,
+                id=self.kwargs.get('review_id'),
+                title_id=self.kwargs.get('title_id')
+            )
         except TypeError:
             TypeError('Нет ревью на это произведение')
         queryset = review.comments.all()
         return queryset
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         try:
-            review = title.review.get(id=self.kwargs.get('review_id'))
+            review = get_object_or_404(
+                Review,
+                id=self.kwargs.get('review_id'),
+                title_id=self.kwargs.get('title_id')
+            )
         except TypeError:
             TypeError('Нет отзыва у этого произведения')
         serializer.save(author=self.request.user, review=review)
